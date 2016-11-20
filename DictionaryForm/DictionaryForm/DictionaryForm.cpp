@@ -17,11 +17,12 @@ string delFirstAndLastSpaces(string text); // удаление из текста последнего и пе
 map<int, map<string, int>> wordsInText(string text); //представление слов в тексте в словарной форме в map-е
 bool numComparison(const std::pair<string, int> &a, const std::pair<string, int> &b); //сравнение второму значению двух пар чисел(необходимо для сортировки вектора из пар по второму значению)
 int numOfWordsInMap(map<int, map<string, int>> words); // подсчет количества слов в map-е
+int numOfLengthsInMap(map<int, map<string, int>> words); // подсчет количества длин слов в map-е
 
 void main()
 {
-	char* inFileName = "input.txt";
-	char* outFileName = "output.txt";
+	char* inFileName = "inT.txt";
+	char* outFileName = "inW.txt";
 	writeTextFileInDictFormFile(inFileName, outFileName);
 }
 void writeTextFileInDictFormFile(char* inFile, char* outFile)
@@ -35,23 +36,38 @@ void writeTextFileInDictFormFile(char* inFile, char* outFile)
 	fin.get(ch);	
 	string mainHead = "";
 
+	auto flag = 0;
+
 	while(ch != '_')
-	{
-		mainHead += ch;
+	{		
+		if (flag == 2) 
+		{
+			if (ch == '\n') flag++;
+			else if(ch != '=') mainHead += ch;
+		}
 		fin.get(ch);
+
+		if(ch == '=')
+		{
+			flag += 1;
+		}
+		
 	}
 	ofstream fos(outFile);
-	fos << mainHead <<  endl;
-	fos.close();
-	string s = "";
 
+	fos << mainHead << endl;
+
+	fos.close();
+
+	string s = "";
+	
 	while (ch != '\n')
 	{
 		s += ch;
 		fin.get(ch);
 	}
 	s += ch;
-
+   
 	while (fin.get(ch))
 	{
 		s += ch;
@@ -70,7 +86,7 @@ void writeTextFileInDictFormFile(char* inFile, char* outFile)
 				}
 				if (head != "_1_")
 				{
-					addTextInDictFormFile(outFile,s);
+					addTextInDictFormFile(outFile, s);
 				}
 				s = head + "\n";
 			}
@@ -79,26 +95,29 @@ void writeTextFileInDictFormFile(char* inFile, char* outFile)
 	addTextInDictFormFile(outFile, s.substr(0, s.length()));
 }
 
-void addTextInDictFormFile(char* fileName,string text)
+void addTextInDictFormFile(char* fileName, string text)
 {
 	ofstream fos(fileName, ios_base::app);
-	auto head = text.substr(0,text.find('\n')+1);
-	fos << head;
+	auto head = text.substr(0, text.find('\n'));
+	fos << head << ' ';
 	
 	text = text.substr(text.find('\n') + 1);
 	text = delFirstAndLastSpaces(text);
-	fos << "N=" << numOfWords(text) << endl;
+
+	fos << numOfWords(text) << ' ';
 
 	auto words = wordsInText(text);
 	
-	fos << "N_words=" << numOfWordsInMap(words) << endl;
+	fos << numOfWordsInMap(words) << ' ';
+
+	fos << numOfLengthsInMap(words) << endl;
 
 	map<int, map<string, int>>::reverse_iterator lenCur;
 	map<string, int>::iterator wordCur;
 
 	for(lenCur = words.rbegin(); lenCur != words.rend(); ++lenCur)
 	{
-		fos << (*lenCur).first << "(" << words[(*lenCur).first].size() << "):";
+		fos << (*lenCur).first / 2 << "(" << words[(*lenCur).first].size() << "):";
 
 		vector<pair<string, int>> lenWordsVector(words[(*lenCur).first].begin(), words[(*lenCur).first].end());
 		sort(lenWordsVector.begin(), lenWordsVector.end(), numComparison);
@@ -107,9 +126,9 @@ void addTextInDictFormFile(char* fileName,string text)
 		{
 			fos << i.first <<"(" << i.second << "); ";
 		}
-		fos << "\n";
+		fos << endl;
 	}
-	fos << "\n";
+	//fos << endl;
 	fos.close();
 }
 
@@ -183,6 +202,11 @@ map<int, map<string, int>> wordsInText(string text)
 int numOfWords(string text)
 {
 	return count(text.begin(), text.end(), ' ') + 1;
+}
+
+int numOfLengthsInMap(map<int, map<string, int>> words)
+{
+	return words.size();
 }
 
 string delFirstAndLastSpaces(string text)
